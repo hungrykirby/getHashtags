@@ -1,0 +1,2 @@
+# getHashtags
+Twitterから特定のハッシュタグを引っ張ってきて、OSC通信でProcessingに渡します
