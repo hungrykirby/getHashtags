@@ -14,6 +14,8 @@ import argparse
 from pythonosc import osc_message_builder
 from pythonosc import udp_client
 
+import sys
+
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
@@ -32,16 +34,22 @@ class OSC:
         print("ip:127.0.0.1, port:" + str(port) + ", address:/text")
 
     def sendInitMessage(self):
-        msg = osc_message_builder.OscMessageBuilder(address="/text")
-        msg.add_arg('ping')
-        msg = msg.build()
-        self.client.send(msg)
+        try:
+            msg = osc_message_builder.OscMessageBuilder(address="/text")
+            msg.add_arg('ping')
+            msg = msg.build()
+            self.client.send(msg)
+        except ParseError:
+            print('ParserError')
 
     def sendMessage(self, text):
-        msg = osc_message_builder.OscMessageBuilder(address="/text")
-        msg.add_arg(text)
-        msg = msg.build()
-        self.client.send(msg)
+        try:
+            msg = osc_message_builder.OscMessageBuilder(address="/text")
+            msg.add_arg(text)
+            msg = msg.build()
+            self.client.send(msg)
+        except ParseError:
+            print('ParserError')
 
 class Twitter:
     twitter = None
@@ -65,11 +73,11 @@ class Twitter:
         if req.status_code == 200:
             timeline = json.loads(req.text)
             for tweet in timeline['statuses']:
-                print(tweet['user']['name']+'::'+self.__shape_tweet(tweet['text']))
-                print(tweet['created_at'])
-                print('----------------------------------------------------')
-
-                self.osc_sender.sendMessage(self.__shape_tweet(tweet['text']))
+                if not 'retweeted_status' in tweet:
+                    print(tweet['user']['name']+'::'+self.__shape_tweet(tweet['text']))
+                    print(tweet['created_at'])
+                    print('----------------------------------------------------')
+                    self.osc_sender.sendMessage(self.__shape_tweet(tweet['text']))
         else:
             print("ERROR: %d" % req.status_code)
 
@@ -90,7 +98,7 @@ class Twitter:
                         try:
                             if js :
                                 tweet = json.loads(js)
-                                if 'text' in tweet:
+                                if 'text' in tweet and not 'retweeted_status' in tweet:
                                     user_name = (tweet["user"]["name"])
                                     user_id = tweet["user"]["id_str"]
                                     screen_name = (tweet["user"]["screen_name"])
@@ -143,6 +151,10 @@ class Twitter:
 
         #全角数字を除去
         #s = re.sub(r"[０-９]+", "", s)
+
+        #…を除く
+        s = re.sub(r"…", "", s)
+        s = re.sub(r"\.", "", s)
 
         s = self.__remove_emoji(s)
 

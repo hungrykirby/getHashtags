@@ -2,7 +2,7 @@
 
 import twit_utils
 
-tw = twit_utils.Twitter('キリチャレの日')
+tw = twit_utils.Twitter('#ケムリクサ')
 
 if __name__ == "__main__":
     tw.fetchhashtagTweets()
