@@ -13,8 +13,11 @@ import argparse
 
 from pythonosc import osc_message_builder
 from pythonosc import udp_client
+from pythonosc.parsing import osc_types
 
 import sys
+import calendar
+import time
 
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
@@ -36,19 +39,31 @@ class OSC:
     def sendInitMessage(self):
         try:
             msg = osc_message_builder.OscMessageBuilder(address="/text")
-            msg.add_arg('ping')
+            msg.add_arg('タイムラインが流れます')
             msg = msg.build()
+
+            msg2 = osc_message_builder.OscMessageBuilder(address="/created_at")
+            msg2.add_arg('Today')
+            msg2 = msg2.build()
+
             self.client.send(msg)
-        except ParseError:
+            self.client.send(msg2)
+        except:
             print('ParserError')
 
-    def sendMessage(self, text):
+    def sendMessage(self, text='', created_at=''):
         try:
             msg = osc_message_builder.OscMessageBuilder(address="/text")
             msg.add_arg(text)
             msg = msg.build()
+
+            msg2 = osc_message_builder.OscMessageBuilder(address="/created_at")
+            msg2.add_arg(created_at)
+            msg2 = msg2.build()
+
             self.client.send(msg)
-        except ParseError:
+            self.client.send(msg2)
+        except:
             print('ParserError')
 
 class Twitter:
@@ -77,7 +92,7 @@ class Twitter:
                     print(tweet['user']['name']+'::'+self.__shape_tweet(tweet['text']))
                     print(tweet['created_at'])
                     print('----------------------------------------------------')
-                    self.osc_sender.sendMessage(self.__shape_tweet(tweet['text']))
+                    self.osc_sender.sendMessage(text=self.__shape_tweet(tweet['text']), created_at=self.__shape_created_at(tweet['created_at']))
         else:
             print("ERROR: %d" % req.status_code)
 
@@ -104,9 +119,10 @@ class Twitter:
                                     screen_name = (tweet["user"]["screen_name"])
                                     text = (tweet["text"])
                                     tweet_id = tweet["id_str"]
+                                    created_at = tweet["created_at"]
                                     print ('----\n'+user_name+"(@"+screen_name+"):"+'\n'+self.__shape_tweet(text))
 
-                                    self.osc_sender.sendMessage(self.__shape_tweet(text))
+                                    self.osc_sender.sendMessage(text=self.__shape_tweet(text), created_at=self.__shape_created_at(created_at))
 
                                     continue
                                 else:
@@ -127,6 +143,14 @@ class Twitter:
             except:
                 print("except Error:", sys.exc_info())
                 pass
+
+    def __shape_created_at(self, created_at):
+        time_utc = time.strptime(created_at, '%a %b %d %H:%M:%S +0000 %Y')
+        unix_time = calendar.timegm(time_utc)
+        time_local = time.localtime(unix_time)
+        japan_time = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
+
+        return japan_time
 
     def __shape_tweet(self, tweet):
         shaped_tweet = tweet
