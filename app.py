@@ -2,7 +2,10 @@
 
 import twit_utils
 
-tw = twit_utils.Twitter('イーブイ進化チャレンジ')
+search_word = input('>>>Hashtag>>> ')
+search_word = str(search_word)
+
+tw = twit_utils.Twitter(search_word)
 
 if __name__ == "__main__":
     tw.fetchhashtagTweets()

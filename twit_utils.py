@@ -156,13 +156,13 @@ class Twitter:
         shaped_tweet = tweet
 
         #URLを除去
-        s = re.sub(r"(\s*https?|ftp)(:\/\/[-_\.!~*\'()a-zA-Z0-9;\/?:\@&=\+\$,%#]+)", "" ,shaped_tweet)
+        s = re.sub(r"\n*(\s*https?|ftp)(:\/\/[-_\.!~*\'()a-zA-Z0-9;\/?:\@&=\+\$,%#]+)\n*", "" ,shaped_tweet)
 
         #ハッシュタグを除去
-        s = re.sub(r"#(\w+)", "", s)
+        s = re.sub(r"\n*#(\w+)\n*", "", s)
 
         #リプライを除去
-        s = re.sub(r"(\s*@\S+\s*)", "", s)
+        s = re.sub(r"\n*(\s*@\S+\s*)\n*", "", s)
 
         #「診断して」を除去
         #s = re.sub(r"診断して", "", s)
