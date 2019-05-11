@@ -180,6 +180,10 @@ class Twitter:
         s = re.sub(r"…", "", s)
         s = re.sub(r"\.", "", s)
 
+        #文頭、文末の改行を排除する
+        s = re.sub("^(\n+)", "", s)
+        s = re.sub("(\n+)$", "", s) #文末の改行群が削除されないので直したい。
+
         s = self.__remove_emoji(s)
 
         if(s == ''):
